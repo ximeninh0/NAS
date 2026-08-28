@@ -7,6 +7,7 @@ Vagrant.configure("2") do |config|
 		client.vm.hostname = "frontend"
 		client.vm.network "forwarded_port", guest: 80, host: 8080
 		client.vm.network "private_network", ip: "10.20.30.1",netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
+		client.vm.synced_folder "./frontend", "/app"
 		client.vm.provider "virtualbox" do |vb|
 			vb.gui = !is_arm
 			vb.memory = "1024"
@@ -25,6 +26,7 @@ Vagrant.configure("2") do |config|
 		client02.vm.box_architecture = "arm64" if is_arm
 		client02.vm.hostname = "backend"
 		client02.vm.network "private_network", ip: "10.20.30.2",netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
+		client02.vm.synced_folder "./backend", "/app"
 		client02.vm.provider "virtualbox" do |vb|
 			vb.gui = !is_arm
 			vb.memory = "1024"
@@ -44,6 +46,7 @@ Vagrant.configure("2") do |config|
 		client03.vm.box_architecture = "arm64" if is_arm
 		client03.vm.hostname = "database"
 		client03.vm.network "private_network", ip: "10.20.30.3",netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
+		client03.vm.synced_folder "./database", "/app"
 		client03.vm.provider "virtualbox" do |vb|
 			vb.gui = !is_arm
 			vb.memory = "1024"
@@ -62,6 +65,7 @@ Vagrant.configure("2") do |config|
 		client04.vm.box_architecture = "arm64" if is_arm
 		client04.vm.hostname = "storage"
 		client04.vm.network "private_network", ip: "10.20.30.4",netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
+		client04.vm.synced_folder "./storage", "/app"
 		client04.vm.provider "virtualbox" do |vb|
 			vb.gui = !is_arm
 			vb.memory = "1024"
