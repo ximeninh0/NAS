@@ -1,0 +1,1 @@
+# serviços relacionados a manipulação de arquivos, comunicar com storage e database
