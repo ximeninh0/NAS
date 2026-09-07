@@ -1,39 +1,66 @@
 Vagrant.configure("2") do |config|
 	is_arm = RUBY_PLATFORM.include?("arm64") || RUBY_PLATFORM.include?("aarch64")
-	config.vm.define "frontend" do |client|
-		client.vm.box = "bento/ubuntu-22.04" if is_arm
-		client.vm.box = "ubuntu/focal64" if !is_arm
-		client.vm.box_architecture = "arm64" if is_arm
-		client.vm.hostname = "frontend"
-		client.vm.network "forwarded_port", guest: 80, host: 8080
-		client.vm.network "private_network", ip: "10.20.30.1",netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
-		client.vm.synced_folder "./frontend", "/app"
-		client.vm.provider "virtualbox" do |vb|
+	box = is_arm ? "bento/ubuntu-22.04" : "ubuntu/focal64"
+
+	config.vm.box = box
+	config.vm.box_architecture = "arm64" if is_arm
+
+	config.vm.define "frontend" do |frontend|
+		frontend.vm.hostname = "frontend"
+		frontend.vm.network "forwarded_port", guest: 80, host: 8080
+		frontend.vm.network "private_network", ip: "10.20.30.1", netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
+		frontend.vm.synced_folder "./frontend", "/app"
+		frontend.vm.provider "virtualbox" do |vb|
 			vb.gui = !is_arm
 			vb.memory = "1024"
 			vb.cpus = 1
 			vb.name = "frontend"
-			end
-		client.vm.provision "shell", inline: <<-SHELL
+		end
+		frontend.vm.provision "shell", inline: <<-SHELL
 			sudo apt-get -y update
 			sudo apt-get install -y nginx nodejs npm
 		SHELL
 	end
 
-	config.vm.define "backend" do |client02|
-		client02.vm.box = "bento/ubuntu-22.04" if is_arm
-		client02.vm.box = "ubuntu/focal64" if !is_arm
-		client02.vm.box_architecture = "arm64" if is_arm
-		client02.vm.hostname = "backend"
-		client02.vm.network "private_network", ip: "10.20.30.2",netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
-		client02.vm.synced_folder "./backend", "/app"
-		client02.vm.provider "virtualbox" do |vb|
+	# O storage precisa iniciar antes do backend, que monta o compartilhamento NFS.
+	config.vm.define "storage" do |storage|
+		storage.vm.hostname = "storage"
+		storage.vm.network "private_network", ip: "10.20.30.4", netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
+		storage.vm.synced_folder "./storage", "/app"
+		storage.vm.provider "virtualbox" do |vb|
+			vb.gui = !is_arm
+			vb.memory = "1024"
+			vb.cpus = 1
+			vb.name = "storage"
+		end
+		storage.vm.provision "shell", inline: <<-SHELL
+			sudo apt-get -y update
+			sudo apt-get -y install net-tools nfs-kernel-server
+
+			sudo mkdir -p /srv/nas
+			sudo chmod 777 /srv/nas
+
+			if ! grep -q "^/srv/nas 10.20.30.2" /etc/exports; then
+				echo "/srv/nas 10.20.30.2(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
+			fi
+
+			sudo exportfs -ra
+			sudo systemctl enable nfs-kernel-server
+			sudo systemctl restart nfs-kernel-server
+		SHELL
+	end
+
+	config.vm.define "backend" do |backend|
+		backend.vm.hostname = "backend"
+		backend.vm.network "private_network", ip: "10.20.30.2", netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
+		backend.vm.synced_folder "./backend", "/app"
+		backend.vm.provider "virtualbox" do |vb|
 			vb.gui = !is_arm
 			vb.memory = "1024"
 			vb.cpus = 1
 			vb.name = "backend"
-			end
-		client02.vm.provision "shell", inline: <<-SHELL
+		end
+		backend.vm.provision "shell", inline: <<-SHELL
 			sudo apt-get -y update
 
 			sudo apt-get -y install net-tools
@@ -51,59 +78,19 @@ Vagrant.configure("2") do |config|
 		SHELL
 	end
 
-
-	config.vm.define "database" do |client03|
-		client03.vm.box = "bento/ubuntu-22.04" if is_arm
-		client03.vm.box = "ubuntu/focal64" if !is_arm
-		client03.vm.box_architecture = "arm64" if is_arm
-		client03.vm.hostname = "database"
-		client03.vm.network "private_network", ip: "10.20.30.3",netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
-		client03.vm.synced_folder "./database", "/app"
-		client03.vm.provider "virtualbox" do |vb|
+	config.vm.define "database" do |database|
+		database.vm.hostname = "database"
+		database.vm.network "private_network", ip: "10.20.30.3", netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
+		database.vm.synced_folder "./database", "/app"
+		database.vm.provider "virtualbox" do |vb|
 			vb.gui = !is_arm
 			vb.memory = "1024"
 			vb.cpus = 1
 			vb.name = "db"
-			end
-		client03.vm.provision "shell", inline: <<-SHELL
+		end
+		database.vm.provision "shell", inline: <<-SHELL
 			sudo apt-get -y update
 			sudo apt-get install -y mysql-server
-		SHELL
-	end
-
-	config.vm.define "storage" do |client04|
-		client04.vm.box = "bento/ubuntu-22.04" if is_arm
-		client04.vm.box = "ubuntu/focal64" if !is_arm
-		client04.vm.box_architecture = "arm64" if is_arm
-		client04.vm.hostname = "storage"
-		client04.vm.network "private_network", ip: "10.20.30.4",netmask: "255.255.255.0", virtualbox__intnet: "intnet1"
-		client04.vm.synced_folder "./storage", "/app"
-		client04.vm.provider "virtualbox" do |vb|
-			vb.gui = !is_arm
-			vb.memory = "1024"
-			vb.cpus = 1
-			vb.name = "storage"
-			end
-		client04.vm.provision "shell", inline: <<-SHELL
-			sudo apt-get -y update
-
-			sudo apt-get -y install net-tools
-			sudo apt-get -y install nfs-kernel-server #instala o servidor NFS - storage vai ser o serivdor
-
-			sudo mkdir -p /srv/nas #vai criar o arquivo fisico que vai ficar no storage e que o backend vai acessar essa pasta
-			sudo chmod 777 /srv/nas #libera para leitura e escrita
-
-			if ! grep -q "^/srv/nas 10.20.30.2" /etc/exports; then #ele vai procurar se ja existe a linha no arquivo /etc/exports,
-				#se nao existir ele vai adicionar a linha
-				echo "/srv/nas 10.20.30.2(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
-				#se n~çao encontrar a linha "/srv/nas 10.20.30.2" /etc/exports", adiciona a linha ao arquivo
-				#/nas a pasta compartilhada,
-				#10.20.30.2 - quem vai poder acessar essa pasta
-			fi
-
-			sudo exportfs -ra
-			sudo systemctl enable nfs-kernel-server
-			sudo systemctl restart nfs-kernel-server
 		SHELL
 	end
 end
