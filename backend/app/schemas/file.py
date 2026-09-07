@@ -1,1 +1,12 @@
-# estruturas de arquivos
+from datetime import datetime
+from pydantic import BaseModel
+
+
+class FileOut(BaseModel):
+    id: int
+    filename: str
+    size_bytes: int
+    uploaded_at: datetime
+
+    class Config:
+        from_attributes = True
