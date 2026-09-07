@@ -23,10 +23,9 @@ class Settings:
    
     STORAGE_PATH: str = os.getenv("STORAGE_PATH", "/mnt/storage")
 
-    # vai ter autenticação ?
-    # JWT_SECRET: str = os.getenv()
-    # JWT_ALGORITHM: str = os.getenv()
-    # JWT_EXPIRATION_MINUTES: int = 
+    JWT_SECRET: str = os.getenv("JWT_SECRET", "valor-temporario")
+    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+    JWT_EXPIRATION_MINUTES: int = int(os.getenv("JWT_EXPIRATION_MINUTES", "60"))
 
     FRONTEND_ORIGIN: str = os.getenv("FRONTEND_ORIGIN", "http://10.20.30.1")
 
