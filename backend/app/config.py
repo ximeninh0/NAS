@@ -10,7 +10,7 @@ class Settings:
     DB_HOST: str = os.getenv("DB_HOST", "10.20.30.3")
     DB_PORT: int = int(os.getenv("DB_PORT", "3306"))
     DB_USER: str = os.getenv("DB_USER", "nas_user")
-    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "changeme")
+    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "senha123")
     DB_NAME: str = os.getenv("DB_NAME", "nas_db")
 
     @property
@@ -21,7 +21,7 @@ class Settings:
         )
 
    
-    STORAGE_PATH: str = os.getenv("STORAGE_PATH", "/mnt/storage")
+    STORAGE_PATH: str = os.getenv("STORAGE_PATH", "/mnt/nas")
 
     JWT_SECRET: str = os.getenv("JWT_SECRET", "valor-temporario")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
