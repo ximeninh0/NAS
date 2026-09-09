@@ -18,7 +18,22 @@ Vagrant.configure("2") do |config|
 		end
 		frontend.vm.provision "shell", inline: <<-SHELL
 			sudo apt-get -y update
-			sudo apt-get install -y nginx nodejs npm
+			curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+			sudo apt-get install -y nginx nodejs
+
+ 			mkdir -p /home/vagrant/node_modules
+			mkdir -p /app/node_modules
+			sudo mountpoint -q /app/node_modules || sudo mount --bind /home/vagrant/node_modules /app/node_modules
+
+			cd /app
+			npm install
+			npm run build
+
+			sudo sed -i 's|root /var/www/html;|root /app/dist;|' /etc/nginx/sites-available/default
+			sudo sed -i 's|try_files $uri $uri/ =404;|try_files $uri $uri/ /index.html;|' /etc/nginx/sites-available/default
+			sudo sed -i 's/user www-data;/user vagrant;/' /etc/nginx/nginx.conf
+
+			sudo systemctl restart nginx
 		SHELL
 	end
 

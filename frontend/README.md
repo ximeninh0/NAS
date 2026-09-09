@@ -1,16 +1,41 @@
-# React + Vite
+# NAS Drive - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple, beautiful Google Drive-like frontend for managing your files on the NAS (Network
+Attached Storage) platform. Built with React and Vite.
 
-Currently, two official plugins are available:
+This frontend is designed to run inside a multi-VM Vagrant environment, communicating with the
+backend API VM.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🐳 Running inside the Vagrant Environment
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The project is structured to run inside a multi-VM configuration managed by Vagrant:
+- **Frontend VM (`frontend`):** IP `10.20.30.1`, maps guest port `80` to host port `8080`.
+- **Backend VM (`backend`):** IP `10.20.30.2:8000`.
+- **Database VM (`database`):** IP `10.20.30.3:3306`.
+- **Storage VM (`storage`):** IP `10.20.30.4`.
 
-## Expanding the ESLint configuration
+### Step 1: Configure Backend Environment Variables
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Ensure that your `backend/.env` file contains the correct environment variables for database
+connections and shared storage:
+
+### Step 2: Start the VMs
+
+At the project root directory, spin up all VMs:
+```bash
+vagrant up
+```
+
+### Step 3: Access the Application
+
+Once the Vagrant VMs are successfully running, open your web browser on your host machine and go to:
+```text
+http://localhost:8080
+```
+
+From the UI, you can:
+- **Register & Login:** Create an account to receive your JWT security token.
+- **Upload Files:** Choose a local file and click "Upload" (it will be saved to the shared NAS storage).
+- **Download & Delete:** Download any listed file directly or delete it from the storage.
