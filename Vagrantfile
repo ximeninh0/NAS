@@ -122,6 +122,27 @@ Vagrant.configure("2") do |config|
             /home/vagrant/venv/bin/pip install -r /app/requirements.txt
 
             chown -R vagrant:vagrant /home/vagrant/venv
+			sudo tee /etc/systemd/system/nas-backend.service > /dev/null <<EOF
+[Unit]
+Description=Servico Backend
+After=network.target
+
+[Service]
+User=vagrant
+Group=vagrant
+WorkingDirectory=/app
+Environment="PATH=/home/vagrant/venv/bin"
+
+ExecStart=/home/vagrant/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+			sudo systemctl daemon-reload
+            sudo systemctl enable nas-backend.service
+            sudo systemctl restart nas-backend.service
         SHELL
     end
 
