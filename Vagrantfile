@@ -29,9 +29,8 @@ Vagrant.configure("2") do |config|
 			npm install
 			npm run build
 
-			sudo sed -i 's|root /var/www/html;|root /app/dist;|' /etc/nginx/sites-available/default
-			sudo sed -i 's|try_files $uri $uri/ =404;|try_files $uri $uri/ /index.html;|' /etc/nginx/sites-available/default
-			sudo sed -i 's/user www-data;/user vagrant;/' /etc/nginx/nginx.conf
+			sudo cp /app/nginx.conf /etc/nginx/sites-available/default
+			sudo nginx -t
 
 			sudo systemctl restart nginx
 		SHELL

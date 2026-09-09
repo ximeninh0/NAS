@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://10.20.30.2:8000";
+const API_URL = '/api';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
